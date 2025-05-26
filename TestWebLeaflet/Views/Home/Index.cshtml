@@ -2,22 +2,23 @@
     ViewData["Title"] = "نقشه ایران";
     Layout = null;
 }
-<!DOCTYPE html>
-<html lang="fa">
+
 <head>
-    <meta charset="utf-8" />
-    <title>@ViewData["Title"]</title>
+    <!-- ... بقیه تگ‌های head ... -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        #map { height: 600px; }
-    </style>
+    @* <link rel="stylesheet" href="https://unpkg.com/leaflet-control-search@2.9.9/dist/leaflet-control-search.min.css" /> *@
+<link href="~/css/leaflet-search.min.css" rel="stylesheet" />
 </head>
 <body>
-    <h2>نمایش نقشه ایران با GeoJSON</h2>
-    <div id="map"></div>
+    <input type="text" id="searchBox" placeholder="جستجوی استان..." />
+
+    <div id="map" style="height: 600px;"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    @* <script src="https://unpkg.com/leaflet-control-search@2.9.9/dist/leaflet-control-search.min.js"></script> *@
+    <script src="~/js/leaflet-search.min.js"></script>
     <script>
+         let geo;  // متغیر را اینجا تعریف می‌کنیم تا در همه جا قابل دسترسی باشد
         const map = L.map('map').setView([32.0, 53.0], 5);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -27,7 +28,7 @@
         fetch('/data/ir.json')
             .then(res => res.json())
             .then(data => {
-                const geo = L.geoJSON(data, {
+                 geo = L.geoJSON(data, {
                     style: {
                         color: 'blue',
                         weight: 2,
@@ -36,16 +37,32 @@
                     onEachFeature: function (feature, layer) {
                         if (feature.properties && feature.properties.name) {
                             layer.bindPopup(feature.properties.name);
+
+                             // اضافه کردن رویداد کلیک
+        layer.on('click', function(e) {
+            alert('شما روی ' + feature.properties.name + ' کلیک کردید!');
+            // یا هر کار دیگری که بخواهی انجام بدی
+        });
                         }
                     }
                 }).addTo(map);
-                map.fitBounds(geo.getBounds());
-            });
 
-                  fetch('/data/ir2.json')
+                map.fitBounds(geo.getBounds());
+
+                // اضافه کردن کنترل جستجو
+                const searchControl = new L.Control.Search({
+                    layer: geo,
+                    propertyName: 'name',
+                    marker: false,
+                    moveToLocation: function(latlng, title, map) {
+                        map.setView(latlng, 10);
+                    }
+                });
+
+                             fetch('/data/ir2.json')
             .then(res => res.json())
             .then(data => {
-                const geo = L.geoJSON(data, {
+                 geo = L.geoJSON(data, {
                     style: {
                         color: 'red',
                         weight: 2,
@@ -54,6 +71,7 @@
                     onEachFeature: function (feature, layer) {
                         if (feature.properties && feature.properties.name) {
                             layer.bindPopup(feature.properties.name);
+           
                         }
                     }
                 }).addTo(map);
@@ -63,7 +81,7 @@
             fetch('/data/ksc.json')
             .then(res => res.json())
             .then(data => {
-                const geo = L.geoJSON(data, {
+                 geo = L.geoJSON(data, {
                     style: {
                         color: 'green',
                         weight: 2,
@@ -72,12 +90,38 @@
                     onEachFeature: function (feature, layer) {
                         if (feature.properties && feature.properties.name) {
                             layer.bindPopup(feature.properties.name);
+                                    layer.on('popupopen', function(e) {
+            const popupNode = e.popup.getElement();
+            popupNode.addEventListener('click', () => {
+                alert('کلیک روی popup');
+            });
+        });
                         }
                     }
                 }).addTo(map);
                 map.fitBounds(geo.getBounds());
             });
 
+                searchControl.addTo(map);
+            });
+
+
+          document.getElementById('searchBox').addEventListener('input', function(e) {
+            const val = e.target.value.trim().toLowerCase();
+            if (!geo) return;
+                    geo.eachLayer(function(layer) {
+            const name = layer.feature?.properties?.name;
+            if (name && name.toLowerCase().includes(val)) {
+                if (typeof layer.getBounds === 'function') {
+                    map.fitBounds(layer.getBounds());
+                } else if (typeof layer.getLatLng === 'function') {
+                    map.setView(layer.getLatLng(), 10);  // عدد 10 میتونی تغییر بدی
+                }
+                layer.openPopup();
+            }
+        });
+            
+
+        });
     </script>
 </body>
-</html>
