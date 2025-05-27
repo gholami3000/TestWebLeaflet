@@ -20,3 +20,25 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+
+.blinking-icon {
+    width: 50px!important;
+    height: 50px!important;
+    background-color: red;
+    border-radius: 50%;
+    animation: blinking 1s infinite;
+    border: 2px solid white;
+}
+
+@keyframes blinking {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+
