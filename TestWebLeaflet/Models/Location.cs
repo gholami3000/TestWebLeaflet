@@ -1,0 +1,23 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+
+namespace TestWebLeaflet.Models;
+
+public class AppDbContext : DbContext
+{
+    public DbSet<Location> Location { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder options)
+    {
+        options.UseSqlite("Data Source=app.db"); // SQLite در فایل app.db ذخیره می‌شود
+    }
+}
+
+
+
+public class Location
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+}
+

@@ -1,3 +1,4 @@
+﻿using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using TestWebLeaflet.Models;
@@ -26,10 +27,31 @@ public class HomeController : Controller
     {
         return View();
     }
-     public IActionResult ShowAddLocation()
+    public IActionResult ShowAddLocation()
     {
         return View();
     }
+
+    public IActionResult AddLocation(Location model)
+    {
+
+        using var db = new AppDbContext();
+
+        // افزودن یک شخص
+        db.Location.Add(new Location { Name = "شعبه1", Id =Guid.NewGuid() });
+        db.Location.Add(new Location { Name = "2", Id =Guid.NewGuid() });
+        db.SaveChanges();
+
+        // نمایش داده‌ها
+        var people = db.Location.ToList();
+        foreach (var person in people)
+        {
+            
+        }
+        return Json("ok");
+    }
+
+
 
     public IActionResult Privacy()
     {
