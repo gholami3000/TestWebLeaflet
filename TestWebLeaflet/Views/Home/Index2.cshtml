@@ -1,22 +1,11 @@
 ﻿
 @{
     ViewData["Title"] = "نقشه ایران";
-    Layout = null;
 }
-<!DOCTYPE html>
-<html lang="fa">
-<head>
-    <meta charset="UTF-8" />
-    <title>Leaflet - حذف مارکر با Drag</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link href="~/css/site.css" rel="stylesheet" />
+   
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-        }
-
         #map {
             height: 100%;
             width: 100%;
@@ -48,206 +37,52 @@
                 box-shadow: 0 0 20px #2ecc71aa;
             }
 
+    #addMarker {
+        position: absolute;
+        bottom: 108px;
+        right: 23px;
+        width: 80px;
+        height: 80px;
+        background: #0069d9;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        z-index: 1000;
+        cursor: pointer;
+        box-shadow: 0 0 10px #0005;
+        transition: all 0.2s ease;
+        user-select: none;
+        font-size:xx-large;
+    }
+
+   /*  body.adding-marker {
+        cursor: url('../images/marker.png') 16 32, auto;
+    } */
+    /* cursor: url('../images/marker-icon-red.png'); */
+
+    body.adding-marker,
+    .leaflet-container.adding-marker-cursor {
+        cursor: crosshair;
+    }
 
 
     </style>
-</head>
-<body>
 
-    @* <input type="text" id="tooltipInput" style="z-index:100;" placeholder="متن عنوان مارکر را وارد کنید"> *@
-    <div id="map"></div>
-    <div id="trash">🗑️</div>
+    <div class="row">
+        <div class="col-12">
+        <div id="window1" style="display:none;"></div>
+
+        <div id="map" style="position:fixed"></div>
+        <div id="addMarker">📍</div>
+        <div id="trash">🗑️</div>
+        </div>
+    </div>
+
+
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
+    <script src="~/js/home.js"></script>
 
-       const redIcon = L.icon({
-          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-          // iconSize: [25, 41],
-          // iconAnchor: [12, 41],
-          // popupAnchor: [1, 20],
-          // shadowSize: [41, 41]
-        });
-
-          const greenIcon = L.icon({
-           iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-           shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-           // iconSize: [25, 41],
-           // iconAnchor: [12, 41],
-           // popupAnchor: [1, 20],
-           // shadowSize: [41, 41]
-         });
-
-        const markerMap = {};  // key: id (GUID), value: marker
-        const map = L.map('map').setView([35.6892, 51.3890], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-          }).addTo(map);
-        document.addEventListener("DOMContentLoaded", function () {
-
-
-          const trash = document.getElementById('trash');
-          const mapContainer = map.getContainer();
-
-          map.on('click', function (e) {
-           const tooltipText = prompt("لطفاً عنوان مارکر را وارد کنید:");
-
-        // اگر کاربر Cancel زد یا چیزی وارد نکرد، مارکر ساخته نشود
-        if (!tooltipText) return;
-        const markerId = generateGUID();  // ساخت GUID
-              //const tooltipText = document.getElementById('tooltipInput').value || 'بدون عنوان';
-           // const marker = L.marker(e.latlng, { draggable: true }).addTo(map);
-
-          const marker = L.marker(e.latlng, { draggable: true,icon: greenIcon })
-        .addTo(map)
-        .bindTooltip(`${tooltipText}(id: ${markerId})`, {
-          permanent: false,   // false یعنی فقط هنگام hover نمایش داده شود
-          direction: 'top'    // موقعیت نسبت به مارکر (top, bottom, left, right)
-        });
-
-        marker.customId = markerId;
-        markerMap[markerId] = marker;  // ذخیره در دیکشنری
-        console.log("مارکر با GUID:", markerId);
-
-            marker.on('drag', function (event) {
-              const latlng = event.target.getLatLng();
-              const point = map.latLngToContainerPoint(latlng);
-              const mapRect = mapContainer.getBoundingClientRect();
-              const trashRect = trash.getBoundingClientRect();
-
-              const absX = mapRect.left + point.x;
-              const absY = mapRect.top + point.y;
-
-              const insideTrash =
-                absX >= trashRect.left &&
-                absX <= trashRect.right &&
-                absY >= trashRect.top &&
-                absY <= trashRect.bottom;
-
-              if (insideTrash) {
-                trash.classList.add('active');
-              } else {
-                trash.classList.remove('active');
-              }
-            });
-
-            marker.on('dragend', function (event) {
-              const latlng = event.target.getLatLng();
-              const point = map.latLngToContainerPoint(latlng);
-              const mapRect = mapContainer.getBoundingClientRect();
-              const trashRect = trash.getBoundingClientRect();
-
-              const absX = mapRect.left + point.x;
-              const absY = mapRect.top + point.y;
-
-              const insideTrash =
-                absX >= trashRect.left &&
-                absX <= trashRect.right &&
-                absY >= trashRect.top &&
-                absY <= trashRect.bottom;
-
-              trash.classList.remove('active');
-
-              if (insideTrash) {
-                map.removeLayer(marker);
-              }
-            });
-
-            /////////////////
-
-              marker.on('click', function (e) {
-                  //alert("show form");       
-                 // alert(`ID این مارکر: ${this.customId}`);
-                 // removeMarkerById(`${this.customId}`);
-                 var currentId=`${this.customId}`;
-                   makeMarkerBlink(currentId);
-
-                    setTimeout(function(){
-                      
-                            // removeMarkerById(currentId);
-
-                     },3000);
-              });
-            ///////////////////
-
-          });
-
-
-        });
-
-
-        function removeMarkerById(id) {
-           
-          const marker = markerMap[id];
-          if (marker) {
-            map.removeLayer(marker);   // حذف از نقشه
-            delete markerMap[id];      // حذف از حافظه
-            console.log(`مارکر با ID ${id} حذف شد`);
-          } else {
-            console.warn(`مارکری با ID ${id} یافت نشد`);
-          }
-        }
-
-
-         function makeMarkerBlink(id) {
-          const marker = markerMap[id];
-          if (!marker) return;
-
-          // ساخت آیکن چشمک‌زن
-          const blinkingIcon = L.divIcon({
-            className: 'blinking-icon',
-          });
-
-          marker.setIcon(blinkingIcon);
-         
-        }
-
-        function stopBlinking(id) {
-            
-          const marker = markerMap[id];
-          if (!marker) return;
-
-          // مثلاً آیکن معمولی دایره آبی
-          const normalIcon = L.divIcon({
-            className: '',
-            html: '<div style="width:20px;height:20px;background:#3388ff;border-radius:50%;border:2px solid white;"></div>'
-          });
-          marker.setIcon(normalIcon);
-        }
-
-        // function blinkMarker(id) {
-        //   const marker = markerMap[id];
-        //   if (!marker) {
-        //     console.warn("مارکر با این id پیدا نشد");
-        //     return;
-        //   }
-
-        //   let visible = true;
-        //   const interval = setInterval(() => {
-        //     if (visible) {
-        //       marker.setOpacity(0);  // نامرئی
-        //     } else {
-        //       marker.setOpacity(1);  // مرئی
-        //     }
-        //     visible = !visible;
-        //   }, 500); // هر 500 میلی‌ثانیه تغییر کند
-
-        //   // بعد از چند ثانیه توقف چشمک‌زن
-        //   setTimeout(() => {
-        //     clearInterval(interval);
-        //     marker.setOpacity(1); // مطمئن شو آخر کار مرئی است
-        //   }, 5000); // چشمک‌زن برای 5 ثانیه
-        // }
-
-
-        function generateGUID() {
-          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
-        }
-
-    </script>
-</body>
-</html>
+  
