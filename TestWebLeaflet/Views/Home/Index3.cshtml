@@ -1,0 +1,66 @@
+﻿
+    <style>
+        body {
+            background-color: #1e1e2f;
+            color: white;
+            padding: 20px;
+        }
+    </style>
+
+
+    <h2>Kendo Grid Example - Dark Theme</h2>
+
+<div id="window1" style="display:none;"></div>
+
+<button onclick="ShowAdd();">ShowAdd</button>
+    <div id="grid"></div>
+
+    
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#grid").kendoGrid({
+                dataSource: {
+                    data: [
+                        { Name: "Ali", Age: 30 },
+                        { Name: "Sara", Age: 25 },
+                        { Name: "Reza", Age: 40 }
+                    ],
+                    schema: {
+                        model: {
+                            fields: {
+                                Name: { type: "string" },
+                                Age: { type: "number" }
+                            }
+                        }
+                    },
+                    pageSize: 10
+                },
+                height: 400,
+                pageable: true,
+                sortable: true,
+                filterable: true,
+                columns: [
+                    { field: "Name", title: "Name" },
+                    { field: "Age", title: "Age" }
+                ]
+            });
+        });
+    
+       async function ShowAdd(){
+
+        await showKendoWindowAsync({
+              container: '#window1',
+              title: 'جزئیات سفارش',
+              url: '/Home/ShowAddLocation',
+               fullscreen: isMobile()
+          });
+
+          
+
+           }
+
+    </script>
+}
+
