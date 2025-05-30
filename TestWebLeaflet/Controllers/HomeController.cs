@@ -23,10 +23,7 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Index3()
-    {
-        return View();
-    }
+    
     public IActionResult ShowAddLocation()
     {
         return View();

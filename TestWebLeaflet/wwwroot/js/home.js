@@ -170,15 +170,15 @@ function addDraggableMarker(map, lat, lng, options = {}) {
         //    return;
         //}
 
-        $("#marker-context-menu").data("attachedMarker", marker);
+        //$("#marker-context-menu").data("attachedMarker", marker);
 
-        contextMenu.popup.wrapper
-            .css({
-                top: e.originalEvent.pageY,
-                left: e.originalEvent.pageX,
-                display: "block"
-            })
-            .show();
+        //contextMenu.popup.wrapper
+        //    .css({
+        //        top: e.originalEvent.pageY,
+        //        left: e.originalEvent.pageX,
+        //        display: "block"
+        //    })
+        //    .show();
 
         ////// نمایش منو در موقعیت کلیک
         //const menu = $("#marker-context-menu").data("kendoContextMenu");

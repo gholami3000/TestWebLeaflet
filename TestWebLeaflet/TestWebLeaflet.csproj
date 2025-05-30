@@ -15,8 +15,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="AppData\" />
+    <Folder Include="App_Data\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
+
+	<ItemGroup>
+		<Content Include="App_Data\**\*.*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
 
 </Project>

@@ -1,265 +1,151 @@
 ﻿@{
     ViewData["Title"] = "نقشه ایران";
-    Layout = null;
 }
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link href="~/css/site.css" rel="stylesheet" />
 
-<head>
-    <!-- ... بقیه تگ‌های head ... -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    @* <link rel="stylesheet" href="https://unpkg.com/leaflet-control-search@2.9.9/dist/leaflet-control-search.min.css" /> *@
-<link href="~/css/leaflet-search.min.css" rel="stylesheet" />
+<style>
+    #map {
+        height: 100%;
+        width: 100%;
+    }
 
+    #trash {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 80px;
+        height: 80px;
+        background: #e74c3c;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        z-index: 1000;
+        cursor: pointer;
+        box-shadow: 0 0 10px #0005;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
 
-    <style>
-        #map {
-            height: 90vh;
+        #trash.active {
+            background: #2ecc71;
+            transform: scale(1.2);
+            box-shadow: 0 0 20px #2ecc71aa;
         }
 
-        #trash {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
-            background: #e74c3c;
-            color: white;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            z-index: 1000;
-            cursor: pointer;
-            box-shadow: 0 0 10px #0005;
-        }
-    </style>
+    #addMarker {
+        position: absolute;
+        bottom: 108px;
+        right: 23px;
+        width: 80px;
+        height: 80px;
+        background: #0069d9;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        z-index: 1000;
+        cursor: pointer;
+        box-shadow: 0 0 10px #0005;
+        transition: all 0.2s ease;
+        user-select: none;
+        font-size: xx-large;
+    }
 
-</head>
-<body>
-    <input type="text" id="searchBox" placeholder="جستجوی استان..." />
-    <div id="controls">
-        <button id="add-marker-btn">افزودن موقعیت</button>
+    /*  body.adding-marker {
+            cursor: url('../images/marker.png') 16 32, auto;
+        } */
+    /* cursor: url('../images/marker-icon-red.png'); */
+
+    body.adding-marker,
+    .leaflet-container.adding-marker-cursor {
+        cursor: crosshair;
+    }
+
+    .k-context-menu {
+        z-index: 9999 !important;
+    }
+
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div id="window1" style="display:none;"></div>
+
+        <div id="map" style="position:fixed"></div>
+        <div id="addMarker">📍</div>
+        <div id="trash">🗑️</div>
     </div>
-    <div id="trash">🗑️ حذف</div>
-    <div id="map" style="height: 600px;"></div>
+</div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    @* <script src="https://unpkg.com/leaflet-control-search@2.9.9/dist/leaflet-control-search.min.js"></script> *@
-    <script src="~/js/leaflet-search.min.js"></script>
 
+<ul id="marker-context-menu" style="display:none;">
+    <li data-command="edit">ویرایش</li>
+    <li data-command="delete">حذف</li>
+</ul>
+
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="~/js/home.js"></script>
+
+@section Scripts {
     <script>
-        let geo;  // متغیر را اینجا تعریف می‌کنیم تا در همه جا قابل دسترسی باشد
-        const map = L.map('map').setView([32.0, 53.0], 5);
+            let contextMenu = null; // ✅ متغیر سراسری
+        $(document).ready(function () {
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18
-        }).addTo(map);
+           contextMenu = $("#marker-context-menu").kendoContextMenu({
+                filter: ">li",
+                select: function (e) {
+                    const command = $(e.item).data("command");
+                    const marker = $("#marker-context-menu").data("attachedMarker");
 
-        let addMarkerMode = false; // فلگ برای حالت افزودن
-             let markers = [];
+                    if (!marker) return;
 
-         document.getElementById('add-marker-btn').addEventListener('click', function () {
-          addMarkerMode = true;
-          this.innerText = "کلیک روی نقشه برای افزودن موقعیت";
-          this.disabled = true; // اختیاری: جلوگیری از کلیک دوباره
-        });
+                    if (command === "edit") {
+                        alert("✏️ ویرایش مارکر");
+                    } else if (command === "delete") {
+                       // marker.remove();
+                    }
+                }
+            }).data("kendoContextMenu");
 
-         const trash = document.getElementById('trash');
-        const mapContainer = map.getContainer();
-               // دکمه کلیک برای افزودن مارکر
-        map.on('click', function (e) {
-          const marker = L.marker(e.latlng, {
-            draggable: true
-          }).addTo(map);
+            setTimeout(function(){
+                    GetLocationList();
+            },2000);
 
-          // هندلر برای پایان drag
-          marker.on('dragend', function (event) {
-            const trash = document.getElementById('trash');
-            const trashRect = trash.getBoundingClientRect();
 
-            const point = map.latLngToContainerPoint(event.target.getLatLng());
-
-            // بررسی اینکه marker روی trash انداخته شده یا نه
-            if (
-              point.x >= trashRect.left &&
-              point.x <= trashRect.right &&
-              point.y >= trashRect.top &&
-              point.y <= trashRect.bottom
-            ) {
-              map.removeLayer(marker);
-              markers = markers.filter(m => m !== marker);
-            }
-          });
-
-          markers.push(marker);
         });
 
 
-     // map.on('click', function (e) {
-     //    if (!addMarkerMode) return;
 
-     //      // ایجاد marker
-     //      const marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
-     //        .bindPopup("موقعیت ثبت شد").openPopup();
 
-     //      addMarkerMode = false; // غیرفعال‌کردن حالت افزودن
-     //      document.getElementById('add-marker-btn').innerText = "افزودن موقعیت";
-     //      document.getElementById('add-marker-btn').disabled = false;
-     //    });
+        function GetLocationList(){
+            $.ajax({
+              url: '/Home/GetLocationList',
+              method: 'get',
+              success: function (response) {
 
-                   // دکمه کلیک برای افزودن مارکر
-        //       map.on('click', function (e) {
-        //   const marker = L.marker(e.latlng, {
-        //     draggable: true
-        //   }).addTo(map);
-        // });
-
-        map.on('click', function (e) {
-            const marker = L.marker(e.latlng, { draggable: true }).addTo(map);
-
-            marker.on('dragend', function (event) {
-              const latlng = event.target.getLatLng();
-              const point = map.latLngToContainerPoint(latlng);
-              const trashRect = trash.getBoundingClientRect();
-              const mapRect = mapContainer.getBoundingClientRect();
-
-              // point.x/y نسبت به container است، باید به مختصات absolute تبدیل شود
-              const absX = mapRect.left + point.x;
-              const absY = mapRect.top + point.y;
-
-              const insideTrash =
-                absX >= trashRect.left &&
-                absX <= trashRect.right &&
-                absY >= trashRect.top &&
-                absY <= trashRect.bottom;
-
-              if (insideTrash) {
-                map.removeLayer(marker);
+                      response.forEach(item => {
+                           addDraggableMarker(map, item.lat, item.lng, {
+                           tooltipText: item.name
+                           });
+                      });
+              },
+              error: function () {
+                showNotification( "خطا در انجام عملیات" , "error");
               }
             });
-          });
-        
+        }
 
-
-        fetch('/data/ir.json')
-            .then(res => res.json())
-            .then(data => {
-                 geo = L.geoJSON(data, {
-                    style: {
-                        color: 'blue',
-                        weight: 2,
-                        fillOpacity: 0.1
-                    },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties && feature.properties.name) {
-                            layer.bindPopup(feature.properties.name);
-
-                             // اضافه کردن رویداد کلیک
-        layer.on('click', function(e) {
-            alert('شما روی ' + feature.properties.name + ' کلیک کردید!');
-            // یا هر کار دیگری که بخواهی انجام بدی
-        });
-                        }
-                    }
-                }).addTo(map);
-
-
-                map.fitBounds(geo.getBounds());
-
-
-
-                // اضافه کردن کنترل جستجو
-                const searchControl = new L.Control.Search({
-                    layer: geo,
-                    propertyName: 'name',
-                    marker: false,
-                    moveToLocation: function(latlng, title, map) {
-                        map.setView(latlng, 10);
-                    }
-                });
-
-
-
-
-         fetch('/data/ir2.json')
-            .then(res => res.json())
-            .then(data => {
-                 geo = L.geoJSON(data, {
-                    style: {
-                        color: 'red',
-                        weight: 2,
-                        fillOpacity: 0.1
-                    },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties && feature.properties.name) {
-                            layer.bindPopup(feature.properties.name);
-           
-                        }
-                    }
-                }).addTo(map);
-                map.fitBounds(geo.getBounds());
-            });
-
-            fetch('/data/ksc.json')
-            .then(res => res.json())
-            .then(data => {
-                 geo = L.geoJSON(data, {
-                    style: {
-                        color: 'green',
-                        weight: 2,
-                        fillOpacity: 0.1
-                    },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties && feature.properties.name) {
-                            layer.bindPopup(feature.properties.name);
-                                    layer.on('popupopen', function(e) {
-            const popupNode = e.popup.getElement();
-            popupNode.addEventListener('click', () => {
-                alert('کلیک روی popup');
-            });
-        });
-                        }
-                    }
-                }).addTo(map);
-                map.fitBounds(geo.getBounds());
-            });
-
-                searchControl.addTo(map);
-            });
-
-
-          document.getElementById('searchBox').addEventListener('input', function(e) {
-            const val = e.target.value.trim().toLowerCase();
-            if (!geo) return;
-                    geo.eachLayer(function(layer) {
-            const name = layer.feature?.properties?.name;
-            if (name && name.toLowerCase().includes(val)) {
-                if (typeof layer.getBounds === 'function') {
-                    map.fitBounds(layer.getBounds());
-                } else if (typeof layer.getLatLng === 'function') {
-                    map.setView(layer.getLatLng(), 10);  // عدد 10 میتونی تغییر بدی
-                }
-                layer.openPopup();
-            }
-        });
-
-        });
-
-
-        //         // هندلر برای کلیک روی نقشه
-        // map.on('click', function(e) {
-        //   // alert("hiiiiii");
-        //        var lat = e.latlng.lat;
-        // var lng = e.latlng.lng;
-
-        // // ایجاد marker
-        // var marker = L.marker([lat, lng]).addTo(map);
-
-        // // نمایش popup اختیاری
-        // marker.bindPopup("Marker at:<br>Lat: " + lat.toFixed(5) + "<br>Lng: " + lng.toFixed(5)).openPopup();
-
-         //});
     </script>
 
 
-</body>
+
+
+}
+
