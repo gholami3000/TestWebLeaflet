@@ -68,6 +68,9 @@
         cursor: crosshair;
     }
 
+    .k-context-menu {
+        z-index: 9999 !important;
+    }
 
     </style>
 
@@ -82,7 +85,68 @@
     </div>
 
 
+<ul id="marker-context-menu" style="display:none;">
+    <li data-command="edit">ویرایش</li>
+    <li data-command="delete">حذف</li>
+</ul>
+
+
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="~/js/home.js"></script>
 
-  
+@section Scripts {
+<script>
+        let contextMenu = null; // ✅ متغیر سراسری
+    $(document).ready(function () {
+
+       contextMenu = $("#marker-context-menu").kendoContextMenu({
+            filter: ">li",
+            select: function (e) {
+                const command = $(e.item).data("command");
+                const marker = $("#marker-context-menu").data("attachedMarker");
+
+                if (!marker) return;
+
+                if (command === "edit") {
+                    alert("✏️ ویرایش مارکر");
+                } else if (command === "delete") {
+                   // marker.remove();
+                }
+            }
+        }).data("kendoContextMenu");
+
+        setTimeout(function(){
+                GetLocationList();
+        },2000);
+
+        
+    });
+
+       
+
+
+    function GetLocationList(){
+        $.ajax({
+          url: '/Home/GetLocationList',
+          method: 'get',        
+          success: function (response) {
+
+                  response.forEach(item => {
+                       addDraggableMarker(map, item.lat, item.lng, {
+                       tooltipText: item.name
+                       });
+                  });             
+          },
+          error: function () {
+            showNotification( "خطا در انجام عملیات" , "error");
+          }
+        });
+    }
+
+</script>
+
+
+
+   
+}
+

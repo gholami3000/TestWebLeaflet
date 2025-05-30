@@ -32,25 +32,35 @@ public class HomeController : Controller
         return View();
     }
 
+    
+    [HttpPost]
     public IActionResult AddLocation(Location model)
     {
-
         using var db = new AppDbContext();
 
         // افزودن یک شخص
-        db.Location.Add(new Location { Name = "شعبه1", Id =Guid.NewGuid() });
-        db.Location.Add(new Location { Name = "2", Id =Guid.NewGuid() });
+        db.Location.Add(new Location
+        {
+            Name=model.Name,
+            lat=model.lat,
+            lng=model.lng
+        });
+
         db.SaveChanges();
 
         // نمایش داده‌ها
-        var people = db.Location.ToList();
-        foreach (var person in people)
-        {
-            
-        }
+        var location = db.Location.ToList();
+        
         return Json("ok");
     }
 
+    public IActionResult GetLocationList()
+    {
+        using var db = new AppDbContext();       
+        // نمایش داده‌ها
+        var locationList = db.Location.ToList();
+        return Json(locationList);
+    }
 
 
     public IActionResult Privacy()

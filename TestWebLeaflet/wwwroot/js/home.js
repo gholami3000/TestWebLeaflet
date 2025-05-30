@@ -133,6 +133,76 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+function addDraggableMarker(map, lat, lng, options = {}) {
+    const {
+        tooltipText = 'جهت افزودن اطلاعات کلیک کنید',
+        icon = null,
+        onClick = null,
+        onDragEnd = null
+    } = options;
+
+    const latlng = L.latLng(lat, lng);
+
+    const marker = L.marker(latlng, {
+        draggable: true
+        //icon: icon || undefined
+    }).addTo(map);
+
+    marker.bindTooltip(tooltipText, {
+        permanent: false,
+        direction: 'top'
+    });
+
+    //if (typeof onClick === 'function') {
+    //    marker.on('click', onClick);
+    //}
+
+    //if (typeof onDragEnd === 'function') {
+    //    marker.on('dragend', onDragEnd);
+    //}
+
+    marker.on('contextmenu', function (e) {
+
+        //e.originalEvent.preventDefault();
+
+        //if (!contextMenu) {
+        //    console.error("❌ contextMenu تعریف نشده!");
+        //    return;
+        //}
+
+        $("#marker-context-menu").data("attachedMarker", marker);
+
+        contextMenu.popup.wrapper
+            .css({
+                top: e.originalEvent.pageY,
+                left: e.originalEvent.pageX,
+                display: "block"
+            })
+            .show();
+
+        ////// نمایش منو در موقعیت کلیک
+        //const menu = $("#marker-context-menu").data("kendoContextMenu");
+
+        //// اتصال مارکر به منو
+        //$("#marker-context-menu").data("attachedMarker", marker);
+
+        //// موقعیت دادن دستی به منو
+        //contextMenu.popup.wrapper
+        //    .css({
+        //        top: e.originalEvent.pageY,
+        //        left: e.originalEvent.pageX,
+        //        display: "block"
+        //    })
+        //    .show();
+
+        // جلوگیری از منوی پیش‌فرض مرورگر
+       // e.originalEvent.preventDefault();
+    });
+
+
+    return marker;
+}
+
 function removeMarkerById(id) {
 
     const marker = markerMap[id];
@@ -197,7 +267,7 @@ document.body.addEventListener('click', function (e) {
 async function ShowAdd() {
     await showKendoWindowAsync({
         container: '#window1',
-        title: 'جزئیات سفارش',
+        title: 'ثبت',
         url: '/Home/ShowAddLocation',
         fullscreen: isMobile()
     });

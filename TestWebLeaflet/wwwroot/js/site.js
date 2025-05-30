@@ -66,8 +66,6 @@ function showKendoWindow(options) {
     }
 }
 
-
-
 function showKendoWindowAsync(options) {
     return new Promise((resolve) => {
         const {
@@ -144,10 +142,65 @@ function showKendoWindowAsync(options) {
     });
 }
 
+function closeKendoWindow(container) {
+    const $container = (typeof container === 'string') ? $(container) : container;
+
+    if ($container.length === 0) {
+        console.warn("🟡 عنصر یافت نشد:", container);
+        return;
+    }
+
+    const wnd = $container.data("kendoWindow");
+
+    if (wnd) {
+        wnd.close();
+    } else {
+        console.warn("🟡 KendoWindow بر روی این عنصر فعال نیست:", container);
+    }
+}
 
 
 function isMobile() {
     const isSmallScreen = window.matchMedia("(max-width: 767px)").matches;
     const isTouchDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     return isSmallScreen || isTouchDevice;
+}
+
+
+function showNotification(message, type = 'info') {
+    let $notif = $("#global-kendo-notification");
+
+    if ($notif.length === 0) {
+        // ایجاد عنصر notification اگر وجود ندارد
+        $("body").append("<div id='global-kendo-notification'></div>");
+
+        $notif = $("#global-kendo-notification").kendoNotification({
+            position: {
+                top: 30,
+                right: 30
+            },
+            autoHideAfter: 3000,
+            stacking: "down",
+            templates: [
+                {
+                    type: "success",
+                    template: "<div class='success-notification'>✔️ #: message #</div>"
+                },
+                {
+                    type: "error",
+                    template: "<div class='error-notification'>❌ #: message #</div>"
+                },
+                {
+                    type: "info",
+                    template: "<div class='info-notification'>ℹ️ #: message #</div>"
+                }
+            ]
+        });
+
+        $notif = $notif.data("kendoNotification");
+    } else {
+        $notif = $notif.data("kendoNotification");
+    }
+
+    $notif.show({ message }, type);
 }
