@@ -14,16 +14,13 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="App_Data\" />
-    <Folder Include="Migrations\" />
-  </ItemGroup>
-
 	<ItemGroup>
-		<Content Include="App_Data\**\*.*">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
+		<PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.4" />
 	</ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
 
 </Project>

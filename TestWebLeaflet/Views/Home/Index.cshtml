@@ -89,6 +89,7 @@
     <li data-command="delete">حذف</li>
 </ul>
 
+<script src="~/js/signalr.js"></script>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="~/js/home.js"></script>
@@ -116,7 +117,7 @@
 
             setTimeout(function(){
                     GetLocationList();
-            },2000);
+            },200);
 
 
         });
@@ -129,9 +130,9 @@
               url: '/Home/GetLocationList',
               method: 'get',
               success: function (response) {
-
+                  console.log(response);
                       response.forEach(item => {
-                           addDraggableMarker(map, item.lat, item.lng, {
+                           addDraggableMarker(item.id,map, item.lat, item.lng, {
                            tooltipText: item.name
                            });
                       });
@@ -145,6 +146,77 @@
     </script>
 
 
+
+    <script>
+
+        const connection = new signalR.HubConnectionBuilder()
+          .withUrl("/AlarmHub")
+          .build();
+
+         let intervalId = null;
+         async function startConnection() {
+             try {
+                 await connection.start();
+                 console.log("✅ Connected to SignalR");
+                 // // فقط یک بار interval بساز
+                 // if (!intervalId) {
+                 //     intervalId = setInterval(() => {
+                 //         if (connection.state === signalR.HubConnectionState.Connected) {
+                 //             connection.send("SendSystemInfo").catch(err => {
+                 //                 console.error("Send error:", err);
+                 //             });
+                 //         }
+                 //     }, 1000);
+                 // }
+
+             } catch (err) {
+                 console.error("❌ Connection failed:", err);
+                 setTimeout(startConnection, 5000);
+             }
+         }
+
+
+                 // اگر اتصال قطع شد → متوقف کردن ارسال
+         connection.onclose(() => {
+             console.warn("❗ Connection closed");
+             if (intervalId) {
+                 clearInterval(intervalId);
+                 intervalId = null;
+             }
+             setTimeout(startConnection, 5000); // تلاش مجدد
+         });
+
+         connection.onreconnected(() => {
+             console.log("🔄 Reconnected");
+             startConnection();
+         });
+
+         connection.onreconnecting(() => {
+             console.warn("⏳ Reconnecting...");
+         });
+
+                 // قطع اتصال موقع ترک صفحه
+         window.addEventListener("beforeunload", async () => {
+             try {
+                 await connection.stop();
+                 console.log("SignalR disconnected on page unload");
+             } catch (err) {
+                 console.log("Error stopping connection on unload", err);
+             }
+         });
+
+         // شروع اتصال
+         startConnection();
+
+         connection.on("ReceiveAlarm", (id) => {
+            // document.getElementById("threadCount").innerText = `Threads: ${threadCount}`;
+          // alert(id);
+          makeMarkerBlink(`${id}`);
+
+         });
+
+
+    </script>
 
 
 }

@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using TestWebLeaflet.Models;
 
 namespace TestWebLeaflet.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    private readonly AppDbContext _context;
+    private readonly IHubContext<AlarmHub> _hubContext;
+    // تزریق DbContext از طریق کانستراکتور
+    public HomeController(AppDbContext context, IHubContext<AlarmHub> hubContext)
     {
-        _logger = logger;
+        _context = context;
+        _hubContext = hubContext;
     }
+
 
     public IActionResult Index()
     {
@@ -33,30 +38,44 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult AddLocation(Location model)
     {
-        using var db = new AppDbContext();
-
         // افزودن یک شخص
-        db.Location.Add(new Location
+        _context.Location.Add(new Location
         {
             Name=model.Name,
             lat=model.lat,
             lng=model.lng
         });
 
-        db.SaveChanges();
+        _context.SaveChanges();
 
         // نمایش داده‌ها
-        var location = db.Location.ToList();
+        var location = _context.Location.ToList();
         
         return Json("ok");
     }
 
     public IActionResult GetLocationList()
     {
-        using var db = new AppDbContext();       
         // نمایش داده‌ها
-        var locationList = db.Location.ToList();
+        //var locationList = _context.Location.ToList();
+        //foreach (var item in locationList)
+        //{
+        //    _context.Remove(item);
+        //}
+        //_context.SaveChanges();
+
+        var locationList = _context.Location.ToList();
         return Json(locationList);
+    }
+
+    
+    public async Task<IActionResult> SendAlarm()
+    {
+        var q=_context.Location.FirstOrDefault();
+        // ارسال پیام به همه کلاینت‌ها
+        await _hubContext.Clients.All.SendAsync("ReceiveAlarm", q.Id);
+
+        return Ok();
     }
 
 

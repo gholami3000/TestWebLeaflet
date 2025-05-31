@@ -1,7 +1,7 @@
 ﻿
 let isAddingMarker = false;
-let lat;
-let lng;
+let latitude;
+let longitude;
 
 const redIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
@@ -47,158 +47,217 @@ document.addEventListener("DOMContentLoaded", function () {
         isAddingMarker = false;
         mapContainer.classList.remove('adding-marker-cursor'); // بازگشت نشانگر ماوس
         const markerId = generateGUID();  // ساخت GUID
-        //const tooltipText = document.getElementById('tooltipInput').value || 'بدون عنوان';
-        // const marker = L.marker(e.latlng, { draggable: true }).addTo(map);
-
-        const marker = L.marker(e.latlng,
-            {
-                draggable: true,
-                //icon: greenIcon
-            })
-            .addTo(map)
-            .bindTooltip(`جهت افزودن اطلاعات کلیک کنید`, {
-                permanent: false,   // false یعنی فقط هنگام hover نمایش داده شود
-                direction: 'top'    // موقعیت نسبت به مارکر (top, bottom, left, right)
-            });
-
-        marker.customId = markerId;
-        markerMap[markerId] = marker;  // ذخیره در دیکشنری
-        console.log("مارکر با GUID:", markerId);
-
-        marker.on('drag', function (event) {
-            const latlng = event.target.getLatLng();
-            const point = map.latLngToContainerPoint(latlng);
-            const mapRect = mapContainer.getBoundingClientRect();
-            const trashRect = trash.getBoundingClientRect();
-
-            const absX = mapRect.left + point.x;
-            const absY = mapRect.top + point.y;
-
-            const insideTrash =
-                absX >= trashRect.left &&
-                absX <= trashRect.right &&
-                absY >= trashRect.top &&
-                absY <= trashRect.bottom;
-
-            if (insideTrash) {
-                trash.classList.add('active');
-            } else {
-                trash.classList.remove('active');
-            }
+        
+         addDraggableMarker(markerId, map, e.latlng.lat, e.latlng.lng, {
+             tooltipText: "جهت افزودن اطلاعات کلیک کنید",
+             eventMap:e
         });
 
-        marker.on('dragend', function (event) {
-            const latlng = event.target.getLatLng();
-            const point = map.latLngToContainerPoint(latlng);
-            const mapRect = mapContainer.getBoundingClientRect();
-            const trashRect = trash.getBoundingClientRect();
-
-            const absX = mapRect.left + point.x;
-            const absY = mapRect.top + point.y;
-
-            const insideTrash =
-                absX >= trashRect.left &&
-                absX <= trashRect.right &&
-                absY >= trashRect.top &&
-                absY <= trashRect.bottom;
-
-            trash.classList.remove('active');
-
-            if (insideTrash) {
-                map.removeLayer(marker);
-            }
-        });
-
-        /////////////////
-        marker.on('click', async function (e) {
-             lat = e.latlng.lat;
-             lng = e.latlng.lng;
-            console.log(e);
-            console.log(`lat ${lat}`);
-            console.log(`lng ${lng}`);
-
-            //alert("show form");       
-            // alert(`ID این مارکر: ${this.customId}`);
-            // removeMarkerById(`${this.customId}`);
-            var currentId = `${this.customId}`;
-            // makeMarkerBlink(currentId);
-            await ShowAdd();
-
-        });
-        ///////////////////
 
     });
 
 
 });
 
+function addDraggableMarker(markerId, map, lat, lng, options = {}) {
 
-function addDraggableMarker(map, lat, lng, options = {}) {
+    const {
+        tooltipText = 'جهت افزودن اطلاعات کلیک کنید',
+       // icon = null,
+        //onClick = null,
+        //onDragEnd = null,
+    } = options;
+    // اگر مارکر قبلاً وجود دارد، حذفش کن
+    //if (markers[markerId]) {
+    //    map.removeLayer(markers[markerId]);
+    //}
+
+    // تنظیمات پیش‌فرض
+    const defaultOptions = {
+        draggable: true,
+        title: markerId,
+    };
+
+    // ادغام تنظیمات کاربر با پیش‌فرض‌ها
+    const markerOptions = { ...defaultOptions, ...options };
+
+    // ساخت مارکر و اضافه به نقشه
+    const marker = L.marker([lat, lng], markerOptions).addTo(map);
+
+    // ذخیره مارکر در لیست
+    markerMap[markerId] = marker;
+
+
+    // رویداد click برای گرفتن مختصات کلیک
+    marker.on('click', async function (e) {
+     
+            latitude = e.latlng.lat;
+            longitude = e.latlng.lng;
+            console.log(e);
+            //console.log(`lat ${lat}`);
+            //console.log(`lng ${lng}`);
+            var currentId = `${this.markerId}`;
+            // makeMarkerBlink(currentId);
+            await ShowAdd();
+    });
+
+
+    marker.on('drag', function (event) {
+
+        const latlng = event.target.getLatLng();
+        const point = map.latLngToContainerPoint(latlng);
+        const mapRect = mapContainer.getBoundingClientRect();
+        const trashRect = trash.getBoundingClientRect();
+
+        const absX = mapRect.left + point.x;
+        const absY = mapRect.top + point.y;
+
+        const insideTrash =
+            absX >= trashRect.left &&
+            absX <= trashRect.right &&
+            absY >= trashRect.top &&
+            absY <= trashRect.bottom;
+
+        if (insideTrash) {
+            trash.classList.add('active');
+        } else {
+            trash.classList.remove('active');
+        }
+    });
+
+    marker.on('dragend', function (event) {
+        const latlng = event.target.getLatLng();
+        const point = map.latLngToContainerPoint(latlng);
+        const mapRect = mapContainer.getBoundingClientRect();
+        const trashRect = trash.getBoundingClientRect();
+
+        const absX = mapRect.left + point.x;
+        const absY = mapRect.top + point.y;
+
+        const insideTrash =
+            absX >= trashRect.left &&
+            absX <= trashRect.right &&
+            absY >= trashRect.top &&
+            absY <= trashRect.bottom;
+
+        trash.classList.remove('active');
+
+        if (insideTrash) {
+            map.removeLayer(marker);
+        }
+    });
+
+    return marker;
+}
+
+
+function addDraggableMarker111(markerId,map, lat, lng, options = {}) {
+
     const {
         tooltipText = 'جهت افزودن اطلاعات کلیک کنید',
         icon = null,
         onClick = null,
-        onDragEnd = null
+        onDragEnd = null,
     } = options;
 
     const latlng = L.latLng(lat, lng);
 
-    const marker = L.marker(latlng, {
-        draggable: true
-        //icon: icon || undefined
-    }).addTo(map);
+    const marker = L.marker(eventMap.latlng,
+        {
+            draggable: true,
+            //icon: greenIcon
+        })
+        .addTo(map)
+        .bindTooltip(`جهت افزودن اطلاعات کلیک کنید`, {
+            permanent: false,   // false یعنی فقط هنگام hover نمایش داده شود
+            direction: 'top'    // موقعیت نسبت به مارکر (top, bottom, left, right)
+        });
 
-    marker.bindTooltip(tooltipText, {
+
+   // marker.markerId = markerId;
+
+    marker.bindTooltip(`${tooltipText} id=${markerId}`, {
         permanent: false,
         direction: 'top'
     });
 
-    //if (typeof onClick === 'function') {
-    //    marker.on('click', onClick);
-    //}
+    //marker.on('click',function (event) {
+    //    alert();
+    //    latitude = e.latlng.lat;
+    //    longitude = e.latlng.lng;
+    //    console.log(e);
+    //    //console.log(`lat ${lat}`);
+    //    //console.log(`lng ${lng}`);
+    //    var currentId = `${this.markerId}`;
+    //    // makeMarkerBlink(currentId);
+    //   // await ShowAdd();
+    //});
+ 
+    marker.on('drag', function (event) {
+       
+        const latlng = event.target.getLatLng();
+        const point = map.latLngToContainerPoint(latlng);
+        const mapRect = mapContainer.getBoundingClientRect();
+        const trashRect = trash.getBoundingClientRect();
 
-    //if (typeof onDragEnd === 'function') {
-    //    marker.on('dragend', onDragEnd);
-    //}
+        const absX = mapRect.left + point.x;
+        const absY = mapRect.top + point.y;
 
-    marker.on('contextmenu', function (e) {
+        const insideTrash =
+            absX >= trashRect.left &&
+            absX <= trashRect.right &&
+            absY >= trashRect.top &&
+            absY <= trashRect.bottom;
 
-        //e.originalEvent.preventDefault();
+        if (insideTrash) {
+            trash.classList.add('active');
+        } else {
+            trash.classList.remove('active');
+        }
+    });
+    
+    marker.on('dragend', function (event) {
+        const latlng = event.target.getLatLng();
+        const point = map.latLngToContainerPoint(latlng);
+        const mapRect = mapContainer.getBoundingClientRect();
+        const trashRect = trash.getBoundingClientRect();
 
-        //if (!contextMenu) {
-        //    console.error("❌ contextMenu تعریف نشده!");
-        //    return;
-        //}
+        const absX = mapRect.left + point.x;
+        const absY = mapRect.top + point.y;
 
-        //$("#marker-context-menu").data("attachedMarker", marker);
+        const insideTrash =
+            absX >= trashRect.left &&
+            absX <= trashRect.right &&
+            absY >= trashRect.top &&
+            absY <= trashRect.bottom;
 
-        //contextMenu.popup.wrapper
-        //    .css({
-        //        top: e.originalEvent.pageY,
-        //        left: e.originalEvent.pageX,
-        //        display: "block"
-        //    })
-        //    .show();
+        trash.classList.remove('active');
 
-        ////// نمایش منو در موقعیت کلیک
-        //const menu = $("#marker-context-menu").data("kendoContextMenu");
-
-        //// اتصال مارکر به منو
-        //$("#marker-context-menu").data("attachedMarker", marker);
-
-        //// موقعیت دادن دستی به منو
-        //contextMenu.popup.wrapper
-        //    .css({
-        //        top: e.originalEvent.pageY,
-        //        left: e.originalEvent.pageX,
-        //        display: "block"
-        //    })
-        //    .show();
-
-        // جلوگیری از منوی پیش‌فرض مرورگر
-       // e.originalEvent.preventDefault();
+        if (insideTrash) {
+            map.removeLayer(marker);
+        }
     });
 
+    /////////////////
+    marker.on('click', async function (eventMap) {
+        alert();
+        //lat = e.latlng.lat;
+        //lng = e.latlng.lng;
+        //console.log(e);
+        //console.log(`lat ${lat}`);
+        //console.log(`lng ${lng}`);
+
+        ////alert("show form");       
+        //// alert(`ID این مارکر: ${this.customId}`);
+        //// removeMarkerById(`${this.customId}`);
+        //var currentId = `${this.customId}`;
+        //// makeMarkerBlink(currentId);
+        //await ShowAdd();
+
+    });
+    ///////////////////
+
+    markerMap[markerId] = marker;
 
     return marker;
 }
