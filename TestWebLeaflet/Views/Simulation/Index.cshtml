@@ -1,0 +1,169 @@
+﻿
+<style>
+    body {
+        background-color: #1e1e2f;
+        color: white;
+        padding: 20px;
+    }
+
+    .k-grid .btn-enable {
+        background-color: #28a745 !important;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+    }
+
+    .k-grid .btn-disable {
+        background-color: #dc3545!important;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+    }
+
+</style>
+
+
+<h2> شبیه ساز </h2>
+
+@* <div id="window1" style="display:none;"></div> *@
+
+@* <button onclick="ShowAdd();">ShowAdd</button>
+
+*@<div id="grid"></div>
+
+@section Scripts {
+    <script>
+
+          $(document).ready(function () {
+
+
+              showGrid();
+
+          });
+
+
+
+          function showGrid(){
+               $("#grid").kendoGrid({
+            dataSource: {
+                transport: {
+                    read: {
+                        url: "/Home/GetLocationList", // آدرس اکشن
+                        dataType: "json"
+                    }
+                },
+                schema: {
+                    model: {
+                        fields: {
+                            // Id: { type: "string" },
+                            // Name: { type: "string" }
+                        }
+                    }
+                },
+                pageSize: 10
+            },
+            pageable: true,
+            sortable: true,
+            columns: [
+               // { field: "Id", title: "ID", width: "50px" },
+                { field: "name", title: "Name" },
+                {
+                command: [
+                    {
+                        name: "Enable",
+                        text: "فعال‌سازی",
+                        click: function (e) {
+                            e.preventDefault();
+                            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+                            StartAlarm(dataItem.id);
+                        }
+                    },
+                    {
+                        name: "Disable",
+                        text: "غیرفعال‌سازی",
+                        click: function (e) {
+                            e.preventDefault();
+                            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+                            StopAlarm(dataItem.id);
+                        },
+                        className: "k-grid-enableAlarm"
+                    },
+                    {
+                        name: "remove",
+                        text: "‌حذف",
+                        click: function (e) {
+                            e.preventDefault();
+                            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+                            RemoveItem(dataItem.id);
+                        },
+                        className: "k-grid-disableAlarm"
+
+                    }
+                ],
+                title: "عملیات",
+                width: "250px"
+            }
+                //{ field: "Level", title: "Alarm Level" }
+            ]
+        });
+          }
+
+           function refreshGrid(){
+              $("#grid").data("kendoGrid").dataSource.read();
+          }
+
+         function StartAlarm(id){
+            $.ajax({
+              url: '/Home/StartAlarm', 
+              method: 'POST',
+              data: {
+                  id: id
+              },
+              success: function (response) {
+                 showNotification( "عملیات با موفقیت انجام شد" , "success");
+              },
+              error: function () {
+                showNotification( "خطا در انجام عملیات" , "error");
+              }
+            });
+        }
+
+         function StopAlarm(id){
+            $.ajax({
+              url: '/Home/StopAlarm',  
+              method: 'POST',
+              data: {
+                  id: id
+              },
+              success: function (response) {
+                 showNotification( "عملیات با موفقیت انجام شد" , "success");
+              },
+              error: function () {
+                showNotification( "خطا در انجام عملیات" , "error");
+              }
+            });
+        }
+
+
+
+
+         function RemoveItem(id){
+            $.ajax({
+              url: '/Home/RemoveItem',  
+              method: 'POST',
+              data: {
+                  id: id
+              },
+              success: function (response) {
+                 showNotification( "عملیات با موفقیت انجام شد" , "success");
+                 refreshGrid();
+              },
+              error: function () {
+                showNotification( "خطا در انجام عملیات" , "error");
+              }
+            });
+        }
+
+    </script>
+}
+

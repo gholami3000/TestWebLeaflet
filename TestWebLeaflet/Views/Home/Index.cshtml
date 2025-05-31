@@ -58,8 +58,8 @@
     }
 
     /*  body.adding-marker {
-            cursor: url('../images/marker.png') 16 32, auto;
-        } */
+                cursor: url('../images/marker.png') 16 32, auto;
+            } */
     /* cursor: url('../images/marker-icon-red.png'); */
 
     body.adding-marker,
@@ -208,12 +208,40 @@
          // شروع اتصال
          startConnection();
 
-         connection.on("ReceiveAlarm", (id) => {
+         connection.on("ReceiveAlarm", (type,id) => {
             // document.getElementById("threadCount").innerText = `Threads: ${threadCount}`;
           // alert(id);
-          makeMarkerBlink(`${id}`);
+
+          if(type==="startAlarm"){
+             makeMarkerBlink(`${id}`);
+          }else{
+            removeMarkerById(`${id}`);
+            RegenerateMarkerById(`${id}`);
+          }
 
          });
+
+
+
+         function RegenerateMarkerById(id){
+            $.ajax({
+              url: '/Home/GetItem',  // آدرس مقصد دریافت اطلاعات (مثلاً یک فایل PHP)
+              method: 'get',
+              data: {
+                  id: id
+              },
+              success: function (response) {
+                 //showNotification( "عملیات با موفقیت انجام شد" , "success");
+
+                  addDraggableMarker(response.id,map, response.lat, response.lng, {
+                           tooltipText: response.name
+                           });
+              },
+              error: function () {
+                showNotification( "خطا در انجام عملیات" , "error");
+              }
+            });
+        }
 
 
     </script>
