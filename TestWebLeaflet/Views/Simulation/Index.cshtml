@@ -14,7 +14,7 @@
     }
 
     .k-grid .btn-disable {
-        background-color: #dc3545!important;
+        background-color: #dc3545 !important;
         color: white;
         padding: 4px 10px;
         border-radius: 4px;
@@ -66,8 +66,13 @@
             sortable: true,
             columns: [
                // { field: "Id", title: "ID", width: "50px" },
-                { field: "name", title: "Name" },
                 {
+                field: "name",
+                title: "Name",
+                width: "200px",
+                },
+                {
+                    width: "200px",
                 command: [
                     {
                         name: "Enable",
@@ -114,7 +119,7 @@
 
          function StartAlarm(id){
             $.ajax({
-              url: '/Home/StartAlarm', 
+              url: '/Home/StartAlarm',
               method: 'POST',
               data: {
                   id: id
@@ -130,7 +135,7 @@
 
          function StopAlarm(id){
             $.ajax({
-              url: '/Home/StopAlarm',  
+              url: '/Home/StopAlarm',
               method: 'POST',
               data: {
                   id: id
@@ -149,7 +154,7 @@
 
          function RemoveItem(id){
             $.ajax({
-              url: '/Home/RemoveItem',  
+              url: '/Home/RemoveItem',
               method: 'POST',
               data: {
                   id: id
