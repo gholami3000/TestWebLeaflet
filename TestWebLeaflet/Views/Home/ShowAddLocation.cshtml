@@ -1,42 +1,36 @@
-﻿
-@{
+﻿@{
     Layout = null;
 }
 
 
+<form>
+    <div class="row">
+        <div class="col-12">
+            <div class="mb-3">
+                <label for="name" class="form-label">نام</label>
+                <input type="text" class="form-control" id="name" placeholder="نام محل را وارد کنید">
+            </div>
+
+              <div class="text-center">
+                <button type="button" onclick="AddLocation();" class="btn btn-primary"> ذخیره </button>
+            </div>
 
 
-    <div class="container mt-5">
-        <div class="card shadow">
-            <div class="card-header text-center">
-                <h4>  </h4>
-            </div>
-            <div class="card-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="name" class="form-label">نام</label>
-                        <input type="text" class="form-control" id="name" placeholder="نام خود را وارد کنید">
-                    </div>
-                <button type="button" onclick="AddLocation();" class="btn btn-primary">ذخیره‌سازی</button>
-                </form>
-            </div>
         </div>
     </div>
-
-
-
+</form>
 
 
 
 <script>
     $(document).ready(function () {
-        
+
     });
 
 
 
     function AddLocation(){
-          var nameValue = $('#name').val();        
+          var nameValue = $('#name').val();
         $.ajax({
           url: '/Home/AddLocation',  // آدرس مقصد دریافت اطلاعات (مثلاً یک فایل PHP)
           method: 'POST',
@@ -46,12 +40,12 @@
               lng:longitude,
           },
           success: function (response) {
-             //  notification.show("عملیات با موفقیت انجام شد", "success");   
+             //  notification.show("عملیات با موفقیت انجام شد", "success");
              showNotification( "عملیات با موفقیت انجام شد" , "success");
              closeKendoWindow('#window1');
           },
-          error: function () {    
-            //notification.show("خطا در انجام عملیات", "error");    
+          error: function () {
+            //notification.show("خطا در انجام عملیات", "error");
             showNotification( "عملیات با موفقیت انجام شد" , "error");
           }
         });

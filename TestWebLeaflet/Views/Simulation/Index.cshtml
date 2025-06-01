@@ -27,9 +27,9 @@
 
 @* <div id="window1" style="display:none;"></div> *@
 
-@* <button onclick="ShowAdd();">ShowAdd</button>
+@* <button class="btn btn-primary" onclick="">ShowAdd</button> *@
 
-*@<div id="grid"></div>
+<div id="grid"></div>
 
 @section Scripts {
     <script>
@@ -85,8 +85,8 @@
                             e.preventDefault();
                             var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
                             StopAlarm(dataItem.id);
-                        },
-                        className: "k-grid-enableAlarm"
+                        }
+                        //className: "k-grid-enableAlarm"
                     },
                     {
                         name: "remove",
@@ -95,8 +95,8 @@
                             e.preventDefault();
                             var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
                             RemoveItem(dataItem.id);
-                        },
-                        className: "k-grid-disableAlarm"
+                        }
+                        //className: "k-grid-disableAlarm"
 
                     }
                 ],

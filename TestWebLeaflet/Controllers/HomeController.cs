@@ -18,8 +18,12 @@ public class HomeController : Controller
         _hubContext = hubContext;
     }
 
-
     public IActionResult Index()
+    {
+        return View();
+    }
+
+    public IActionResult Menu()
     {
         return View();
     }
@@ -30,7 +34,6 @@ public class HomeController : Controller
     {
         return View();
     }
-
 
     [HttpPost]
     public IActionResult AddLocation(Location model)

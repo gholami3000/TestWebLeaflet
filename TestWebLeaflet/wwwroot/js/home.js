@@ -328,7 +328,9 @@ async function ShowAdd() {
         container: '#window1',
         title: 'ثبت',
         url: '/Home/ShowAddLocation',
-        fullscreen: isMobile()
+        fullscreen: isMobile(),
+        width : '300',
+        height : '250'
     });
 
 }

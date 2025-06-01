@@ -39,7 +39,7 @@ app.MapHub<AlarmHub>("/AlarmHub");
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=menu}/{id?}");
 
 
 // 🔧 اینجا دیتابیس ایجاد می‌شود اگر وجود نداشته باشد
